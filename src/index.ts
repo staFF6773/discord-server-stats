@@ -1,38 +1,9 @@
 import express, { Request, Response } from 'express';
-import { ActivityType, Client, GatewayIntentBits } from 'discord.js';
-import dotenv from 'dotenv';
 import path from 'path';
-
-// Load environment variables
-dotenv.config();
+import client from './discordBot'; // Import the Discord client
 
 const app = express();
 const port = 8080;
-
-// Using the token from the .env file
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN; 
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-  ],
-});
-
-client.once('ready', () => {
-  console.log('Bot connected to Discord');
-
-  // Set bot status
-  client.user?.setPresence({
-    activities: [
-      { name: 'Gathering statistics from your server', type: ActivityType.Watching } // Use ActivityType for type
-    ],
-    status: 'online', // You can also use 'idle', 'dnd' or 'invisible'.
-  });
-});
-
-client.login(DISCORD_BOT_TOKEN);
 
 // Serving static files and the main view
 app.use(express.static(path.join(__dirname, 'views')));
@@ -42,7 +13,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.get('/serverStats', (req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, 'views', 'serverStats.html'));
+  res.sendFile(path.join(__dirname, 'views', 'serverStats.html'));
 });
 
 app.get('/server/:id', async (req: Request, res: Response): Promise<void> => {
