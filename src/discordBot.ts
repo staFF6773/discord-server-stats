@@ -25,23 +25,29 @@ client.once('ready', () => {
     ],
     status: 'online',
   });
+
+  // Start the ping interval to keep the bot alive every 5 minutes
+  setInterval(() => {
+    console.log('Pinging to keep the bot alive');
+    // You can add any simple operation that keeps the bot responsive here
+  }, 300000); // Ping every 5 minutes (300,000 ms)
 });
 
 // Event when the bot joins a new guild
 client.on('guildCreate', async (guild) => {
   // Create an embed message
   const embed = new EmbedBuilder()
-    .setColor('#0099ff') // Set the color of the embed
+    .setColor('#0099ff')
     .setTitle('Hello! I am **Server Stats**')
     .setDescription('🎉 **Thank you for adding me to your server!**\n\n' +
                     'I am here to help you gather statistics about your server and display them on your webpage.')
     .addFields(
       { name: '📊 Information', value: 'You can start using me at any time. I am ready to help you with useful statistics.', inline: false },
-      { name: '🔗 Server URL', value: `http://localhost:8080/serverStats?id=${guild.id}`, inline: true },
+      { name: '🔗 Server URL', value: `https://discord-server-stats.domcloud.dev//serverStats?id=${guild.id}`, inline: true },
     )
     .setFooter({ text: 'If you need help, feel free to ask me!' })
-    .setTimestamp() // Add timestamp to the footer
-    .setThumbnail(client.user?.displayAvatarURL() || ''); // Set the bot's avatar as thumbnail, with fallback
+    .setTimestamp()
+    .setThumbnail(client.user?.displayAvatarURL() || '');
 
   // Get the first text channel in the guild
   const channel = guild.channels.cache.find(channel => channel.type === ChannelType.GuildText);
@@ -67,4 +73,4 @@ client.login(DISCORD_BOT_TOKEN).catch(err => {
   console.error('Failed to login:', err);
 });
 
-export default client; // Export the client for use in other files
+export default client;
