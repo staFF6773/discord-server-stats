@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Server Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        discord: {
+                            DEFAULT: '#5865F2', /* Primary Color */
+                            dark: '#36393f', /* Background */
+                            darker: '#2f3136', /* Card Background */
+                            darkest: '#202225', /* Darker Main Background */
+                            yellow: '#f4c22b', /* Attention Box Yellow */
+                        },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-discord-darkest text-gray-200 flex items-center justify-center min-h-screen animate-fade-in">
+    <div class="w-full max-w-4xl p-6 bg-discord-dark rounded-lg shadow-xl space-y-6 animate-slide-up">
+        <h1 class="text-4xl font-bold mb-4 text-center text-discord">Discord Server Statistics</h1>
+        <div id="serverInfo" class="space-y-4"></div>
+        <div class="mt-6 text-center">
+            <a href="/" class="inline-block px-6 py-3 bg-discord hover:bg-discord/80 text-white rounded-full transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">Go Back</a>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const serverId = params.get('id');
+
+        fetch(`/server/${serverId}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Server not found');
+                return response.json();
+            })
+            .then(data => {
+                const serverInfo = document.getElementById('serverInfo');
+                serverInfo.innerHTML = `
+                    <div class="flex items-center space-x-4 mb-4">
+                        <img src="${data.icon}" alt="Server Icon" class="w-20 h-20 rounded-full border-4 border-discord">
+                        <div>
+                            <h2 class="text-3xl font-bold text-discord">${data.name}</h2>
+                            <p class="text-gray-400">ID: ${serverId}</p>
+                        </div>
+                    </div>
+                    <div class="mb-4 overflow-hidden rounded-lg shadow-md">
+                        <img src="${data.banner}" alt="Server Banner" class="w-full h-auto">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-discord-darker p-4 rounded-lg">
+                            <p class="text-lg">Members</p>
+                            <p class="text-3xl font-bold text-discord">${data.memberCount}</p>
+                        </div>
+                        <div class="bg-discord-darker p-4 rounded-lg">
+                            <p class="text-lg">Created On</p>
+                            <p class="text-xl font-semibold">${new Date(data.createdAt).toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                    <div class="bg-discord-darker p-4 rounded-lg mb-4">
+                        <p class="text-lg mb-2">Owner ID: <span class="font-semibold">${data.ownerId}</span></p>
+                        <a href="${data.invites.length > 0 ? data.invites[0].url : '#'}" target="_blank" class="text-discord hover:underline">Join the Server</a>
+                    </div>
+                    <div class="bg-discord-darker p-4 rounded-lg">
+                        <h3 class="text-xl font-semibold mb-2">Recent Members:</h3>
+                        <ul class="space-y-2">
+                            ${data.recentMembers.map(member => `
+                                <li class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-discord rounded-full flex items-center justify-center">
+                                        ${member.username.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span>${member.username}</span>
+                                    <span class="text-gray-400 text-sm">(ID: ${member.id})</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                const serverInfo = document.getElementById('serverInfo');
+                serverInfo.innerHTML = `<p class="text-red-500 text-center text-xl">${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>
