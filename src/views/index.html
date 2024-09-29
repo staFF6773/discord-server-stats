@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        discord: '#5865F2',
+                    },
+                    transitionDuration: {
+                        '0': '0ms',
+                        '300': '300ms',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex items-center justify-center min-h-screen animate-fadeIn">
+    <div class="w-full max-w-md p-6 space-y-8 animate-slideUp">
+        <div class="bg-yellow-500 border-l-4 border-yellow-700 text-yellow-900 p-4 mb-6 rounded" role="alert">
+            <p class="font-bold">Attention</p>
+            <p>For the statistics to work, the Discord bot must be on your server. You can invite the bot <a href="URL_DEL_ENLACE" class="text-yellow-900 underline">Here</a>.</p>
+        </div>
+
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-2">
+                Discord Bot Statistics <i class="fab fa-discord"></i>
+            </h1>
+            <p class="text-gray-400">Use this interface to view your server statistics but the bot has to be on your server to get the information.</p>
+        </div>        
+        
+        <form id="serverForm" class="space-y-4">
+            <input 
+                type="text" 
+                id="serverId" 
+                placeholder="the Server ID" 
+                required
+                class="w-full p-3 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-discord transition duration-300"
+            >
+            <button 
+                type="submit"
+                class="w-full p-3 bg-discord hover:bg-discord/80 text-white font-semibold rounded-md transition duration-300 transform hover:scale-105 hover:shadow-lg"
+            >
+                Get Server Information
+            </button>
+        </form>
+        
+        <div class="pt-6 mt-6 border-t border-gray-700 text-center">
+            <p id="botStats" class="text-sm text-gray-400">Loading bot statistics...</p>
+        </div>
+    </div>
+
+    <script>
+    const serverForm = document.getElementById('serverForm');
+
+    serverForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const serverId = document.getElementById('serverId').value;
+
+        // Redirect to the new page with the server ID as parameter
+        window.location.href = `/serverStats?id=${serverId}`;
+    });
+
+    // Function to obtain bot statistics
+    async function fetchBotStats() {
+        try {
+            const response = await fetch('/botStats');
+            const data = await response.json();
+            const botStatsElement = document.getElementById('botStats');
+            botStatsElement.textContent = `The bot is present in ${data.guildCount} servers.`;
+        } catch (error) {
+            console.error('Error when obtaining bot statistics:', error);
+            document.getElementById('botStats').textContent = 'Error loading bot statistics.';
+        }
+    }
+
+    // Call function on page load
+    fetchBotStats();
+    </script>
+</body>
+</html>
