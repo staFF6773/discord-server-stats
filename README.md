@@ -6,6 +6,9 @@
 
 ![image](https://github.com/user-attachments/assets/96a5f63d-ff70-46bf-bb1f-4b228277f0d7)
 
+![image](https://github.com/user-attachments/assets/2150f47f-f77b-4ce4-bc65-a2b02c10237a)
+
+
 ## Features
 
 - **Discord Bot:** Collects real-time statistics from your Discord server.
