@@ -16,6 +16,8 @@ app.get('/serverStats', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'views', 'serverStats.html'));
 });
 
+let totalDataSent = 0; // Contador total de datos enviados
+
 app.get('/server/:id', async (req: Request, res: Response): Promise<void> => {
   const serverId: string = req.params.id;
 
@@ -45,12 +47,21 @@ app.get('/server/:id', async (req: Request, res: Response): Promise<void> => {
       recentMembers,
     };
 
+    const responseData = JSON.stringify(serverData);
+    totalDataSent += Buffer.byteLength(responseData, 'utf8'); // Calculate the size of the data sent
+
     res.json(serverData);
   } catch (error) {
     console.error('Error getting data from the server:', error);
     res.status(500).send('Error getting data from the server');
   }
 });
+
+// New API to obtain data traffic
+app.get('/dataTraffic', (req: Request, res: Response) => {
+  res.json({ totalDataSent });
+});
+
 
 // New API to obtain the number of servers
 app.get('/botStats', (req: Request, res: Response) => {
