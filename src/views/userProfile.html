@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" sizes="16x16" href="/src/favicons/favicon-16x16.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        discord: '#5865F2',
+                    },
+                    transitionDuration: {
+                        '0': '0ms',
+                        '300': '300ms',
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex items-center justify-center min-h-screen animate-fadeIn">
+    <div class="w-full max-w-md p-6 space-y-8 animate-slideUp">
+        <div class="bg-yellow-500 border-l-4 border-yellow-700 text-yellow-900 p-4 mb-6 rounded" role="alert">
+            <p class="font-bold">Attention</p>
+            <p>For the statistics to work, the Discord bot must be on your server. You can invite the bot <a href="https://discord.com/oauth2/authorize?client_id=1290016828243837068&permissions=8&integration_type=0&scope=bot" class="text-yellow-900 underline">Here</a>.</p>
+        </div>
+
+        <div class="text-center">
+            <h1 class="text-4xl font-bold mb-2">
+                User Profile <i class="fab fa-discord"></i>
+            </h1>
+            <p class="text-gray-400">Use this interface to view user profile information from your server.</p>
+        </div>        
+        
+        <form id="profileForm" class="space-y-4">
+            <input 
+                type="text" 
+                id="serverId" 
+                placeholder="Server ID" 
+                required
+                class="w-full p-3 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-discord transition duration-300"
+            >
+            <input 
+                type="text" 
+                id="userId" 
+                placeholder="User ID" 
+                required
+                class="w-full p-3 bg-gray-900 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-discord transition duration-300"
+            >
+            <button 
+                type="submit"
+                class="w-full p-3 bg-discord hover:bg-discord/80 text-white font-semibold rounded-md transition duration-300 transform hover:scale-105 hover:shadow-lg"
+            >
+                Fetch User Profile
+            </button>
+        </form>
+        
+        <div id="profile-container" class="pt-6 mt-6 border-t border-gray-700 text-center hidden">
+            <div id="profile-info">
+                <!-- User information will be dynamically inserted here -->
+                <p id="loadingMessage" class="text-sm text-gray-400">Loading user profile...</p>
+            </div>
+            <button id="backButton" class="mt-4 p-2 bg-gray-600 text-white rounded-md hover:bg-gray-500">
+                Back
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const profileForm = document.getElementById('profileForm');
+        const profileContainer = document.getElementById('profile-container');
+        const backButton = document.getElementById('backButton');
+
+        profileForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const serverId = document.getElementById('serverId').value;
+            const userId = document.getElementById('userId').value;
+
+            if (!serverId || !userId) {
+                alert('Please enter both Server ID and User ID.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/userProfile/${serverId}/${userId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+
+                const profile = await response.json();
+                displayUserProfile(profile);
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                document.getElementById('profile-info').innerText = 'Error fetching user profile.';
+            }
+        });
+
+        function displayUserProfile(profile) {
+            const profileInfo = document.getElementById('profile-info');
+            let activitiesSection = '';
+
+            if (profile.activities && profile.activities.length > 0) {
+                activitiesSection = `<div class="mt-4"><h3 class="text-lg font-semibold">Activities:</h3>`;
+                profile.activities.forEach(activity => {
+                    activitiesSection += `
+                        <p class="text-gray-300">Activity: ${activity.name}</p>
+                        ${activity.details ? `<p class="text-gray-300">Details: ${activity.details}</p>` : ''}
+                        ${activity.state ? `<p class="text-gray-300">State: ${activity.state}</p>` : ''}
+                    `;
+                });
+                activitiesSection += `</div>`;
+            }
+
+            profileInfo.innerHTML = `
+                ${profile.banner ? `<img class="w-full h-40 mt-4 object-cover rounded-lg border border-gray-600" src="${profile.banner}" alt="Banner">` : '<p class="text-center mt-4">No banner available</p>'}
+                <img class="w-32 h-32 rounded-full mx-auto border-4 border-gray-800" src="${profile.avatar}" alt="Avatar">
+                <h2 class="text-2xl font-semibold text-center mt-4">${profile.username}</h2>
+                <p class="mt-4">ID: ${profile.id}</p>
+                <p>Time in Community: ${new Date(profile.timeInCommunity).toLocaleString()}</p>
+                <p>Decoration: ${profile.decoration ? `#${profile.decoration.toString(16)}` : 'No decoration'}</p>
+                <p>Status: ${profile.status}</p>
+                ${activitiesSection}
+            `;
+
+            // Show profile container and hide the form
+            profileContainer.classList.remove('hidden');
+            profileForm.classList.add('hidden');
+        }
+
+        // Event listener for the back button
+        backButton.addEventListener('click', () => {
+            profileContainer.classList.add('hidden');
+            profileForm.classList.remove('hidden');
+            document.getElementById('profileForm').reset(); // Optional: reset the form fields
+            document.getElementById('profile-info').innerHTML = '<p id="loadingMessage" class="text-sm text-gray-400">Loading user profile...</p>'; // Reset loading message
+        });
+    </script>
+</body>
+</html>
