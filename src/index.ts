@@ -57,6 +57,56 @@ app.get('/server/:id', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// New API to obtain user profile information
+app.get('/userProfile/:serverId/:userId', async (req: Request, res: Response): Promise<void> => {
+  const serverId: string = req.params.serverId;
+  const userId: string = req.params.userId;
+
+  try {
+    const guild = await client.guilds.fetch(serverId);
+    const member = await guild.members.fetch(userId);
+
+    if (!member) {
+      res.status(404).send('User not found in the server');
+      return;
+    }
+
+    // Fetch the complete user profile, including the banner
+    const fullUser = await member.user.fetch();
+
+    const activities = member.presence?.activities.map(activity => ({
+      type: activity.type,
+      name: activity.name,
+      details: activity.details,
+      state: activity.state,
+    })) || [];
+
+    const userProfile = {
+      id: member.id,
+      username: fullUser.username, // Use fullUser for all profile details
+      avatar: fullUser.displayAvatarURL(),
+      banner: fullUser.bannerURL({ size: 2048 }) || null, // Use fullUser to get banner, handle if null
+      decoration: fullUser.accentColor,
+      timeInCommunity: new Date(member.joinedTimestamp ?? 0).toISOString(),
+      status: member.presence?.status || 'offline', // User status (online, idle, dnd, offline)
+      activities: activities.length > 0 ? activities : null,
+    };
+
+    const responseData = JSON.stringify(userProfile);
+    totalDataSent += Buffer.byteLength(responseData, 'utf8'); // Calculate the size of the data sent
+
+    res.json(userProfile);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).send('Error fetching user profile');
+  }
+});
+
+
+app.get('/userProfile', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'views', 'userProfile.html'));
+});
+
 // New API to obtain data traffic
 app.get('/dataTraffic', (req: Request, res: Response) => {
   res.json({ totalDataSent });
